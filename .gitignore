@@ -1,0 +1,17 @@
+# IntelliJ IDEA carpetas de configuración (Raíz y submódulos)
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# Maven (Carpeta target de la raíz y de cada Microservicio)
+**/target/
+.mvn/
+mvnw
+mvnw.cmd
+
+# Logs y archivos del Sistema Operativo
+*.log
+.DS_Store
+Thumbs.db

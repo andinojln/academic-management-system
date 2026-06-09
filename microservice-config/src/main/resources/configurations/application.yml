@@ -1,0 +1,10 @@
+# Los demas archivos (.yml) de la carpeta (configurations) compartiran esta configuracion
+# global, menos el (eureka-server.yml), ya que no debe registrarse en Eureka
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    hostname: localhost
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}:${random.value}

@@ -1,0 +1,10 @@
+INSERT INTO students (name, last_name, email) VALUES ('Santiago', 'Rossi', 's.rossi@academia.com');
+INSERT INTO students (name, last_name, email) VALUES ('Valeria', 'Méndez', 'v.mendez@academia.com');
+INSERT INTO students (name, last_name, email) VALUES ('Joaquín', 'García', 'j.garcia@academia.com');
+INSERT INTO students (name, last_name, email) VALUES ('Lucía', 'Fernández', 'l.fernandez@academia.com');
+INSERT INTO students (name, last_name, email) VALUES ('Bautista', 'Ortega', 'b.ortega@academia.com');
+INSERT INTO students (name, last_name, email) VALUES ('Martina', 'Díaz', 'm.diaz@academia.com');
+INSERT INTO students (name, last_name, email) VALUES ('Tomás', 'Sosa', 't.sosa@academia.com');
+INSERT INTO students (name, last_name, email) VALUES ('Elena', 'Vázquez', 'e.vazquez@academia.com');
+INSERT INTO students (name, last_name, email) VALUES ('Mateo', 'Castro', 'm.castro@academia.com');
+INSERT INTO students (name, last_name, email) VALUES ('Sofía', 'Pereyra', 's.pereyra@academia.com');
