@@ -2,7 +2,7 @@ package com.academic.system.student.service.impl;
 
 import com.academic.system.student.dto.StudentDTO;
 import com.academic.system.student.entity.Student;
-import com.academic.system.student.exception.BadRequestException;
+import com.academic.system.student.exception.ConflictException;
 import com.academic.system.student.exception.ResourceNotFoundException;
 import com.academic.system.student.mapper.StudentMapper;
 import com.academic.system.student.repository.StudentRepository;
@@ -41,7 +41,7 @@ public class StudentServiceImpl implements StudentService {
     @Transactional
     public StudentDTO save(StudentDTO studentDTO) {
         if (studentRepository.existsByEmail(studentDTO.email())) {
-            throw new BadRequestException(
+            throw new ConflictException(
                     "El email '" + studentDTO.email() + "' ya se encuentra registrado"
             );
         }
@@ -59,7 +59,7 @@ public class StudentServiceImpl implements StudentService {
                 ));
         if (!student.getEmail().equals(studentDTO.email()) &&
                 studentRepository.existsByEmail(studentDTO.email())) {
-            throw new BadRequestException(
+            throw new ConflictException(
                     "El email '" + studentDTO.email() + "' ya se encuentra registrado"
             );
         }

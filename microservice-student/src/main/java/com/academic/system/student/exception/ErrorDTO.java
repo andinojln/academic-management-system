@@ -7,7 +7,6 @@ public record ErrorDTO(
         int status,
         LocalDateTime timestamp
 ) {
-
     public ErrorDTO {
         if (timestamp == null) {
             timestamp = LocalDateTime.now();
