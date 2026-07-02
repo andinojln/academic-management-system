@@ -11,14 +11,24 @@ spring:
         - id: msvc-student
           uri: lb://MSVC-STUDENT
           predicates:
-            - Path=/api/students/**
+            - Path=/api/students/**, /v3/api-docs/msvc-student/**
 
         - id: msvc-course
           uri: lb://MSVC-COURSE
           predicates:
-            - Path=/api/courses/**
+            - Path=/api/courses/**, /v3/api-docs/msvc-course/**
 
         - id: msvc-enrollment
           uri: lb://MSVC-ENROLLMENT
           predicates:
-              - Path=/api/enrollments/**
+            - Path=/api/enrollments/**, /v3/api-docs/msvc-enrollment/**
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: Microservicio Estudiantes
+        url: /v3/api-docs/msvc-student
+      - name: Microservicio Cursos
+        url: /v3/api-docs/msvc-course
+      - name: Microservicio Inscripciones
+        url: /v3/api-docs/msvc-enrollment

@@ -6,7 +6,7 @@ import com.academic.system.enrollment.dto.client.CourseDTO;
 import com.academic.system.enrollment.dto.client.StudentDTO;
 import com.academic.system.enrollment.dto.response.EnrollmentDTO;
 import com.academic.system.enrollment.entity.Enrollment;
-import com.academic.system.enrollment.exception.BadRequestException;
+import com.academic.system.enrollment.exception.ConflictException;
 import com.academic.system.enrollment.exception.ResourceNotFoundException;
 import com.academic.system.enrollment.mapper.EnrollmentMapper;
 import com.academic.system.enrollment.repository.EnrollmentRepository;
@@ -112,7 +112,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                 enrollmentDTO.studentId(),
                 enrollmentDTO.courseId()
         )) {
-            throw new BadRequestException("El estudiante ya está inscrito en el curso");
+            throw new ConflictException("El estudiante ya está inscrito en el curso");
         }
 
         try {
@@ -144,7 +144,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                         "Inscripción no encontrada con el ID: " + id
                 ));
 
-        // Validacion de duplicados
+        // Validación de duplicados
         boolean studentChanged = !enrollment.getStudentId().equals(enrollmentDTO.studentId());
         boolean courseChanged = !enrollment.getCourseId().equals(enrollmentDTO.courseId());
         if ((studentChanged || courseChanged) &&
@@ -152,7 +152,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                         enrollmentDTO.studentId(),
                         enrollmentDTO.courseId()
         )) {
-            throw new BadRequestException("El estudiante ya está inscrito en el curso");
+            throw new ConflictException("El estudiante ya está inscrito en el curso");
         }
 
         try {

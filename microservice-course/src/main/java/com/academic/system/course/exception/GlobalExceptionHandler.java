@@ -6,6 +6,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
-    // Exception de error de validacion automatica (400)
+    // Exception de error de validación automática (400)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorDTO> handleArgumentNotValid(MethodArgumentNotValidException exception) {
 
@@ -36,7 +37,46 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    // Exception de error inesperado del sistema (500)
+    // Exception para reglas de negocio rotas (400)
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorDTO> handleBadRequest(BadRequestException exception) {
+
+        ErrorDTO error = new ErrorDTO(exception.getMessage(), HttpStatus.BAD_REQUEST.value());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    // Exception de error de tipeo en los parámetros de la URL (400)
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorDTO> handleTypeMismatch(MethodArgumentTypeMismatchException exception) {
+
+        String typeName = exception.getRequiredType() != null
+                ? exception.getRequiredType().getSimpleName()
+                : "numérico";
+
+        String message = String.format(
+                "El parámetro '%s' debe ser de tipo %s. Valor recibido: '%s'",
+                exception.getName(),
+                typeName,
+                exception.getValue()
+        );
+
+        ErrorDTO error = new ErrorDTO(message, HttpStatus.BAD_REQUEST.value());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    // Exception para conflictos de datos duplicados o estado del servidor (409)
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ErrorDTO> handleConflict(ConflictException exception) {
+
+        ErrorDTO error = new ErrorDTO(
+                exception.getMessage(),
+                HttpStatus.CONFLICT.value()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    // Exception de error inesperado o falla interna del servidor (500)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorDTO> handleGenericException(Exception exception) {
 
