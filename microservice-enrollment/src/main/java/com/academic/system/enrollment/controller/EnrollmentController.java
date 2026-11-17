@@ -30,18 +30,56 @@ public class EnrollmentController {
 
     private final EnrollmentService enrollmentService;
 
-    @GetMapping("/student/{studentId}")
+    @GetMapping("/{id}")
     @Operation(
-            summary = "Obtiene las inscripciones de un estudiante por su ID",
-            description = "Busca en el sistema la lista de todas las " +
-                    "inscripciones asociadas al ID recibido. " +
-                    "Si el estudiante no existe devuelve un error 404, pero si " +
-                    "existe y no tiene inscripciones, devuelve la lista vacía."
+            summary = "Obtener datos de una inscripción",
+            description = "Devuelve los datos de una inscripción específica mediante su ID " +
+                    "único, enriqueciendo la respuesta con los datos del estudiante y del curso."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Inscripciones encontradas correctamente.",
+                    description = "Inscripción recuperada exitosamente.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = EnrollmentDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Identificador de la inscripción inválido.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Inscripción no encontrada.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorDTO.class)
+                    )
+            )
+    })
+    public ResponseEntity<EnrollmentDTO> findById(
+            @Parameter(description = "ID único de la inscripción a consultar.", example = "1")
+            @PathVariable Long id
+    ) {
+        EnrollmentDTO enrollment = enrollmentService.findById(id);
+        return ResponseEntity.ok(enrollment);
+    }
+
+    @GetMapping("/student/{studentId}")
+    @Operation(
+            summary = "Obtener inscripciones por estudiante",
+            description = "Devuelve el listado de todas las inscripciones registradas de un " +
+                    "estudiante específico, incluyendo los datos enriquecidos de los cursos."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Inscripciones recuperadas exitosamente.",
                     content = @Content(
                             mediaType = "application/json",
                             array = @ArraySchema(
@@ -51,7 +89,7 @@ public class EnrollmentController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "El ID ingresado en la URL no es númerico de tipo (Long).",
+                    description = "Identificador del estudiante inválido.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -59,7 +97,7 @@ public class EnrollmentController {
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "El ID ingresado no corresponde a ningún estudiante registrado.",
+                    description = "Estudiante no encontrado.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -67,7 +105,7 @@ public class EnrollmentController {
             )
     })
     public ResponseEntity<List<EnrollmentDTO>> findAllByStudentId(
-            @Parameter(description = "ID del estudiante.", example = "1")
+            @Parameter(description = "ID único del estudiante a consultar.", example = "1")
             @PathVariable Long studentId
     ) {
         List<EnrollmentDTO> studentEnrollments = enrollmentService.findAllByStudentId(studentId);
@@ -76,16 +114,14 @@ public class EnrollmentController {
 
     @GetMapping("/course/{courseId}")
     @Operation(
-            summary = "Obtiene las inscripciones de un curso por su ID",
-            description = "Busca en el sistema la lista de todas las " +
-                    "inscripciones asociadas al ID recibido. " +
-                    "Si el curso no existe devuelve un error 404, pero si existe " +
-                    "y no tiene inscripciones, devuelve la lista vacía."
+            summary = "Obtener inscripciones por curso",
+            description = "Devuelve el listado de todas las inscripciones registradas de un " +
+                    "curso específico, incluyendo los datos enriquecidos de los estudiantes."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Inscripciones encontradas correctamente.",
+                    description = "Inscripciones recuperadas exitosamente.",
                     content = @Content(
                             mediaType = "application/json",
                             array = @ArraySchema(
@@ -95,7 +131,7 @@ public class EnrollmentController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "El ID ingresado en la URL no es númerico de tipo (Long).",
+                    description = "Identificador del curso inválido.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -103,7 +139,7 @@ public class EnrollmentController {
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "El ID ingresado no corresponde a ningún curso registrado.",
+                    description = "Curso no encontrado.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -111,7 +147,7 @@ public class EnrollmentController {
             )
     })
     public ResponseEntity<List<EnrollmentDTO>> findAllByCourseId(
-            @Parameter(description = "ID del curso.", example = "1")
+            @Parameter(description = "ID único del curso a consultar.", example = "1")
             @PathVariable Long courseId
     ) {
         List<EnrollmentDTO> courseEnrollments = enrollmentService.findAllByCourseId(courseId);
@@ -120,15 +156,15 @@ public class EnrollmentController {
 
     @PostMapping
     @Operation(
-            summary = "Crea una nueva inscripción",
-            description = "Crea y registra una inscripción en el sistema con los datos recibidos. " +
-                    "Valida que el estudiante y el curso existan, y verifica que no haya una " +
-                    "inscripción de un estudiante a un curso en el que ya se inscribió."
+            summary = "Crear una nueva inscripción",
+            description = "Registra una nueva inscripción en el sistema asociando un " +
+                    "estudiante con un curso, tras validar la existencia de ambas " +
+                    "entidades y la inexistencia de duplicados."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "201",
-                    description = "Inscripción creada correctamente.",
+                    description = "Inscripción registrada exitosamente.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = EnrollmentDTO.class)
@@ -136,8 +172,7 @@ public class EnrollmentController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Los datos recibidos de la inscripción no cumplen " +
-                            "con las validaciones (datos obligatorios omitidos).",
+                    description = "Datos de la inscripción inválidos o incompletos.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -145,8 +180,7 @@ public class EnrollmentController {
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "El ID del estudiante o el ID del curso, no " +
-                            "existe o no está registrado en el sistema.",
+                    description = "Estudiante o curso no encontrado.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -154,29 +188,29 @@ public class EnrollmentController {
             ),
             @ApiResponse(
                     responseCode = "409",
-                    description = "El estudiante ya se encuentra inscrito en el curso específicado.",
+                    description = "Estudiante ya inscripto en el curso.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
                     )
             )
     })
-    public ResponseEntity<EnrollmentDTO> save(@Valid @RequestBody EnrollmentDTO enrollmentDTO) {
-        EnrollmentDTO savedEnrollment = enrollmentService.save(enrollmentDTO);
+    public ResponseEntity<EnrollmentDTO> save(@Valid @RequestBody EnrollmentDTO enrollment) {
+
+        EnrollmentDTO savedEnrollment = enrollmentService.save(enrollment);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedEnrollment);
     }
 
     @PutMapping("/{id}")
     @Operation(
-            summary = "Actualiza los datos de una inscripción por su ID",
-            description = "Busca en el sistema la inscripción asociada al ID recibido, " +
-                    "junto con sus datos para realizar su actualización. " +
-                    "El ID y los datos de la inscripción serán validados antes de envíar la petición."
+            summary = "Actualizar una inscripción",
+            description = "Actualiza la información de una inscripción existente, revalidando la " +
+                    "existencia del estudiante y del curso, así como la regla de no duplicados."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Inscripción actualizada correctamente.",
+                    description = "Inscripción actualizada exitosamente.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = EnrollmentDTO.class)
@@ -184,9 +218,7 @@ public class EnrollmentController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Los datos recibidos de la inscripción no cumplen " +
-                            "con las validaciones (datos obligatorios omitidos). " +
-                            "O el ID ingresado en la URL no es númerico de tipo (Long).",
+                    description = "Identificador inválido o datos de la inscripción incompletos.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -194,8 +226,7 @@ public class EnrollmentController {
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "El ID de la inscripción, del estudiante o del curso, no " +
-                            "existe o no está registrado en el sistema.",
+                    description = "Inscripción, estudiante o curso no encontrado.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -203,7 +234,7 @@ public class EnrollmentController {
             ),
             @ApiResponse(
                     responseCode = "409",
-                    description = "El estudiante ya se encuentra inscrito en el curso específicado.",
+                    description = "Estudiante ya inscripto en el curso.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -211,30 +242,28 @@ public class EnrollmentController {
             )
     })
     public ResponseEntity<EnrollmentDTO> update(
-            @Parameter(description = "ID de la inscripción.", example = "1")
+            @Parameter(description = "ID único de la inscripción a actualizar.", example = "1")
             @PathVariable Long id,
-            @Valid @RequestBody EnrollmentDTO enrollmentDTO
+            @Valid @RequestBody EnrollmentDTO enrollment
     ) {
-        EnrollmentDTO updatedEnrollment = enrollmentService.update(id, enrollmentDTO);
+        EnrollmentDTO updatedEnrollment = enrollmentService.update(id, enrollment);
         return ResponseEntity.ok(updatedEnrollment);
     }
 
     @DeleteMapping("/{id}")
     @Operation(
-            summary = "Elimina una inscripción por su ID",
-            description = "Busca en el sistema la inscripción asociada al ID recibido, " +
-                    "para realizar su eliminación. " +
-                    "El ID será validado antes de envíar la petición."
+            summary = "Eliminar una inscripción",
+            description = "Elimina una inscripción del sistema mediante su ID único."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "204",
-                    description = "Inscripción eliminada correctamente.",
+                    description = "Inscripción eliminada exitosamente.",
                     content = @Content
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "El ID ingresado en la URL no es númerico de tipo (Long).",
+                    description = "Identificador de la inscripción inválido.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -242,7 +271,7 @@ public class EnrollmentController {
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "El ID ingresado no corresponde a ninguna inscripción registrada.",
+                    description = "Inscripción no encontrada.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -250,7 +279,7 @@ public class EnrollmentController {
             )
     })
     public ResponseEntity<Void> delete(
-            @Parameter(description = "ID de la inscripción.", example = "1")
+            @Parameter(description = "ID único de la inscripción a eliminar.", example = "1")
             @PathVariable Long id
     ) {
         enrollmentService.delete(id);

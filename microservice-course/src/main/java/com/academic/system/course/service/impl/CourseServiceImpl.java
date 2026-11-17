@@ -22,6 +22,7 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional(readOnly = true)
     public List<CourseDTO> findAll() {
+
         List<Course> courses = courseRepository.findAll();
         return courseMapper.toDTOList(courses);
     }
@@ -29,31 +30,9 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional(readOnly = true)
     public CourseDTO findById(Long id) {
+
         return courseRepository.findById(id)
                 .map(courseMapper::toDTO)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Curso no encontrado con el id: " + id
-                ));
-    }
-
-    @Override
-    @Transactional
-    public CourseDTO save(CourseDTO courseDTO) {
-        Course course = courseMapper.toEntity(courseDTO);
-        Course savedCourse = courseRepository.save(course);
-        return courseMapper.toDTO(savedCourse);
-    }
-
-    @Override
-    @Transactional
-    public CourseDTO update(Long id, CourseDTO courseDTO) {
-        return courseRepository.findById(id)
-                .map(course -> {
-                    course.setName(courseDTO.name());
-                    course.setTeacher(courseDTO.teacher());
-                    Course updatedCourse = courseRepository.save(course);
-                    return courseMapper.toDTO(updatedCourse);
-                })
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Curso no encontrado con el ID: " + id
                 ));
@@ -61,12 +40,40 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
+    public CourseDTO save(CourseDTO course) {
+
+        Course courseToSave = courseMapper.toEntity(course);
+        Course savedCourse = courseRepository.save(courseToSave);
+
+        return courseMapper.toDTO(savedCourse);
+    }
+
+    @Override
+    @Transactional
+    public CourseDTO update(Long id, CourseDTO course) {
+
+        Course existingCourse = courseRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Curso no encontrado con el ID: " + id
+                ));
+
+        existingCourse.setName(course.name());
+        existingCourse.setTeacher(course.teacher());
+
+        Course updatedCourse = courseRepository.save(existingCourse);
+        return courseMapper.toDTO(updatedCourse);
+    }
+
+    @Override
+    @Transactional
     public void delete(Long id) {
+
         if (!courseRepository.existsById(id)) {
             throw new ResourceNotFoundException(
                     "Curso no encontrado con el ID: " + id
             );
         }
+
         courseRepository.deleteById(id);
     }
 }

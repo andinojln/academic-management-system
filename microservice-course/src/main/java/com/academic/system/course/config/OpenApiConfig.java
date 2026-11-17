@@ -22,10 +22,8 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("API del Microservicio de Cursos")
                         .version("1.0")
-                        .description(
-                                "Documentación de los endpoints para la gestión " +
-                                        "de cursos del Sistema Académico."
-                        )
+                        .description("Documentación de los endpoints para la gestión " +
+                                "de cursos del Sistema Académico.")
                 );
     }
 }

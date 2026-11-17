@@ -22,10 +22,8 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("API del Microservicio de Estudiantes")
                         .version("1.0")
-                        .description(
-                                "Documentación de los endpoints para la gestión " +
-                                        "de estudiantes del Sistema Académico."
-                        )
+                        .description("Documentación de los endpoints para la gestión " +
+                                "de estudiantes del Sistema Académico.")
                 );
     }
 }

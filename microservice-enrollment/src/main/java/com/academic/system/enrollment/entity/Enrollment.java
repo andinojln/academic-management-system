@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Table(name = "enrollments")
@@ -27,9 +28,9 @@ public class Enrollment {
     @Column(name = "course_id", nullable = false)
     private Long courseId;
 
-    // Ejecuta el method antes de que la entity se inserte en la db
+    // Ejecuta el method antes de que la entity se inserte en la DB
     @PrePersist
     protected void onCreate() {
-        this.enrollmentDate = LocalDateTime.now();
+        this.enrollmentDate = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
     }
 }

@@ -6,13 +6,15 @@ import java.util.List;
 
 public interface EnrollmentService {
 
+    EnrollmentDTO findById(Long id);
+
     List<EnrollmentDTO> findAllByStudentId(Long studentId);
 
     List<EnrollmentDTO> findAllByCourseId(Long courseId);
 
-    EnrollmentDTO save(EnrollmentDTO enrollmentDTO);
+    EnrollmentDTO save(EnrollmentDTO enrollmentRequest);
 
-    EnrollmentDTO update(Long id, EnrollmentDTO enrollmentDTO);
+    EnrollmentDTO update(Long id, EnrollmentDTO enrollmentRequest);
 
     void delete(Long id);
 }

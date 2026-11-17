@@ -32,15 +32,13 @@ public class CourseController {
 
     @GetMapping
     @Operation(
-            summary = "Obtiene los datos de todos los cursos",
-            description = "Busca en el sistema la lista de todos los " +
-                    "cursos registrados, junto con sus datos. " +
-                    "Si no hay registros, devuelve la lista vacía."
+            summary = "Obtener todos los cursos",
+            description = "Devuelve el listado de todos los cursos registrados en el sistema."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Cursos encontrados correctamente.",
+                    description = "Cursos recuperados exitosamente.",
                     content = @Content(
                             mediaType = "application/json",
                             array = @ArraySchema(
@@ -50,21 +48,20 @@ public class CourseController {
             )
     })
     public ResponseEntity<List<CourseDTO>> findAll() {
+
         List<CourseDTO> courses = courseService.findAll();
         return ResponseEntity.ok(courses);
     }
 
     @GetMapping("/{id}")
     @Operation(
-            summary = "Obtiene los datos de un curso por su ID",
-            description = "Busca en el sistema el curso asociado al " +
-                    "ID recibido, junto con sus datos. " +
-                    "El ID será validado antes de envíar la petición."
+            summary = "Obtener datos de un curso",
+            description = "Devuelve los datos de un curso específico mediante su ID único."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Curso encontrado correctamente.",
+                    description = "Curso recuperado exitosamente.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = CourseDTO.class)
@@ -72,7 +69,7 @@ public class CourseController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "El ID ingresado en la URL no es númerico de tipo (Long).",
+                    description = "Identificador del curso inválido.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -80,7 +77,7 @@ public class CourseController {
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "El ID ingresado no corresponde a ningún curso registrado.",
+                    description = "Curso no encontrado.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -88,7 +85,7 @@ public class CourseController {
             )
     })
     public ResponseEntity<CourseDTO> findById(
-            @Parameter(description = "ID del curso.", example = "1")
+            @Parameter(description = "ID único del curso a consultar.", example = "1")
             @PathVariable Long id
     ) {
         CourseDTO course = courseService.findById(id);
@@ -97,14 +94,13 @@ public class CourseController {
 
     @PostMapping
     @Operation(
-            summary = "Crea un nuevo curso",
-            description = "Crea y registra un curso en el sistema con los datos recibidos. " +
-                    "Los datos del curso serán validados antes de envíar la petición."
+            summary = "Crear un nuevo curso",
+            description = "Registra un nuevo curso en el sistema tras validar sus datos obligatorios."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "201",
-                    description = "Curso creado correctamente.",
+                    description = "Curso registrado exitosamente.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = CourseDTO.class)
@@ -112,30 +108,28 @@ public class CourseController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Los datos recibidos del curso no cumplen con las " +
-                            "validaciones (datos obligatorios omitidos).",
+                    description = "Datos del curso incompletos.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
                     )
             )
     })
-    public ResponseEntity<CourseDTO> save(@Valid @RequestBody CourseDTO courseDTO) {
-        CourseDTO savedCourse = courseService.save(courseDTO);
+    public ResponseEntity<CourseDTO> save(@Valid @RequestBody CourseDTO course) {
+
+        CourseDTO savedCourse = courseService.save(course);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedCourse);
     }
 
     @PutMapping("/{id}")
     @Operation(
-            summary = "Actualiza los datos de un curso por su ID",
-            description = "Busca en el sistema el curso asociado al ID recibido, " +
-                    "junto con sus datos para realizar su actualización. " +
-                    "El ID y los datos del curso serán validados antes de envíar la petición."
+            summary = "Actualizar un curso",
+            description = "Actualiza la información de un curso existente tras validar sus datos."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Curso actualizado correctamente.",
+                    description = "Curso actualizado exitosamente.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = CourseDTO.class)
@@ -143,9 +137,7 @@ public class CourseController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "El ID ingresado en la URL no es númerico de tipo (Long). " +
-                            "O los datos recibidos del curso no cumplen con las " +
-                            "validaciones (datos obligatorios omitidos).",
+                    description = "Identificador inválido o datos del curso incompletos.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -153,7 +145,7 @@ public class CourseController {
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "El ID ingresado no corresponde a ningún curso registrado.",
+                    description = "Curso no encontrado.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -161,30 +153,28 @@ public class CourseController {
             )
     })
     public ResponseEntity<CourseDTO> update(
-            @Parameter(description = "ID del curso.", example = "1")
+            @Parameter(description = "ID único del curso a actualizar.", example = "1")
             @PathVariable Long id,
-            @Valid @RequestBody CourseDTO courseDTO
+            @Valid @RequestBody CourseDTO course
     ) {
-        CourseDTO updatedCourse = courseService.update(id, courseDTO);
+        CourseDTO updatedCourse = courseService.update(id, course);
         return ResponseEntity.ok(updatedCourse);
     }
 
     @DeleteMapping("/{id}")
     @Operation(
-            summary = "Elimina un curso por su ID",
-            description = "Busca en el sistema el curso asociado al ID recibido, " +
-                    "para realizar su eliminación. " +
-                    "El ID será validado antes de envíar la petición."
+            summary = "Eliminar un curso",
+            description = "Elimina un curso del sistema mediante su ID único."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "204",
-                    description = "Curso eliminado correctamente.",
+                    description = "Curso eliminado exitosamente.",
                     content = @Content
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "El ID ingresado en la URL no es númerico de tipo (Long).",
+                    description = "Identificador del curso inválido.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -192,7 +182,7 @@ public class CourseController {
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "El ID ingresado no corresponde a ningún curso registrado.",
+                    description = "Curso no encontrado.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -200,7 +190,7 @@ public class CourseController {
             )
     })
     public ResponseEntity<Void> delete(
-            @Parameter(description = "ID del curso.", example = "1")
+            @Parameter(description = "ID único del curso a eliminar.", example = "1")
             @PathVariable Long id
     ) {
         courseService.delete(id);

@@ -13,5 +13,5 @@ public interface CourseMapper {
 
     List<CourseDTO> toDTOList(List<Course> courses);
 
-    Course toEntity(CourseDTO courseDTO);
+    Course toEntity(CourseDTO course);
 }
