@@ -32,15 +32,13 @@ public class StudentController {
 
     @GetMapping
     @Operation(
-            summary = "Obtiene los datos de todos los estudiantes",
-            description = "Busca en el sistema la lista de todos los " +
-                    "estudiantes registrados, junto con sus datos. " +
-                    "Si no hay registros, devuelve la lista vacía."
+            summary = "Obtener todos los estudiantes",
+            description = "Devuelve el listado de todos los estudiantes registrados en el sistema."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Estudiantes encontrados correctamente.",
+                    description = "Estudiantes recuperados exitosamente.",
                     content = @Content(
                             mediaType = "application/json",
                             array = @ArraySchema(
@@ -50,21 +48,20 @@ public class StudentController {
             )
     })
     public ResponseEntity<List<StudentDTO>> findAll() {
+
         List<StudentDTO> students = studentService.findAll();
         return ResponseEntity.ok(students);
     }
 
     @GetMapping("/{id}")
     @Operation(
-            summary = "Obtiene los datos de un estudiante por su ID",
-            description = "Busca en el sistema el estudiante asociado al " +
-                    "ID recibido, junto con sus datos. " +
-                    "El ID será validado antes de envíar la petición."
+            summary = "Obtener datos de un estudiante",
+            description = "Devuelve los datos de un estudiante específico mediante su ID único."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Estudiante encontrado correctamente.",
+                    description = "Estudiante recuperado exitosamente.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = StudentDTO.class)
@@ -72,7 +69,7 @@ public class StudentController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "El ID ingresado en la URL no es númerico de tipo (Long).",
+                    description = "Identificador del estudiante inválido.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -80,7 +77,7 @@ public class StudentController {
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "El ID ingresado no corresponde a ningún estudiante registrado.",
+                    description = "Estudiante no encontrado.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -88,7 +85,7 @@ public class StudentController {
             )
     })
     public ResponseEntity<StudentDTO> findById(
-            @Parameter(description = "ID del estudiante.", example = "1")
+            @Parameter(description = "ID único del estudiante a consultar.", example = "1")
             @PathVariable Long id
     ) {
         StudentDTO student = studentService.findById(id);
@@ -97,14 +94,14 @@ public class StudentController {
 
     @PostMapping
     @Operation(
-            summary = "Crea un nuevo estudiante",
-            description = "Crea y registra un estudiante en el sistema con los datos recibidos. " +
-                    "Los datos del estudiante serán validados antes de envíar la petición."
+            summary = "Crear un nuevo estudiante",
+            description = "Registra un nuevo estudiante en el sistema tras validar " +
+                    "sus datos obligatorios y la unicidad del email."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "201",
-                    description = "Estudiante creado correctamente.",
+                    description = "Estudiante registrado exitosamente.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = StudentDTO.class)
@@ -112,8 +109,7 @@ public class StudentController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Los datos recibidos del estudiante no cumplen con las " +
-                            "validaciones (formatos inválidos, datos obligatorios omitidos).",
+                    description = "Datos del estudiante inválidos o incompletos.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -121,29 +117,29 @@ public class StudentController {
             ),
             @ApiResponse(
                     responseCode = "409",
-                    description = "El email ya se encuentra registrado en el sistema.",
+                    description = "El email ya se encuentra registrado.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
                     )
             )
     })
-    public ResponseEntity<StudentDTO> save(@Valid @RequestBody StudentDTO studentDTO) {
-        StudentDTO savedStudent = studentService.save(studentDTO);
+    public ResponseEntity<StudentDTO> save(@Valid @RequestBody StudentDTO student) {
+
+        StudentDTO savedStudent = studentService.save(student);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedStudent);
     }
 
     @PutMapping("/{id}")
     @Operation(
-            summary = "Actualiza los datos de un estudiante por su ID",
-            description = "Busca en el sistema el estudiante asociado al ID recibido, " +
-                    "junto con sus datos para realizar su actualización. " +
-                    "El ID y los datos del estudiante serán validados antes de envíar la petición."
+            summary = "Actualizar un estudiante",
+            description = "Actualiza la información de un estudiante existente " +
+                    "tras validar sus datos y la unicidad del email."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Estudiante actualizado correctamente.",
+                    description = "Estudiante actualizado exitosamente.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = StudentDTO.class)
@@ -151,9 +147,7 @@ public class StudentController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "El ID ingresado en la URL no es númerico de tipo (Long). " +
-                            "O los datos recibidos del estudiante no cumplen con las " +
-                            "validaciones (formatos inválidos, datos obligatorios omitidos).",
+                    description = "Identificador inválido o datos del estudiante incompletos.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -161,7 +155,7 @@ public class StudentController {
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "El ID ingresado no corresponde a ningún estudiante registrado.",
+                    description = "Estudiante no encontrado.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -169,7 +163,7 @@ public class StudentController {
             ),
             @ApiResponse(
                     responseCode = "409",
-                    description = "El email ya se encuentra registrado en el sistema.",
+                    description = "El email ya se encuentra registrado.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -177,30 +171,28 @@ public class StudentController {
             )
     })
     public ResponseEntity<StudentDTO> update(
-            @Parameter(description = "ID del estudiante.", example = "1")
+            @Parameter(description = "ID único del estudiante a actualizar.", example = "1")
             @PathVariable Long id,
-            @Valid @RequestBody StudentDTO studentDTO
+            @Valid @RequestBody StudentDTO student
     ) {
-        StudentDTO updatedStudent = studentService.update(id, studentDTO);
+        StudentDTO updatedStudent = studentService.update(id, student);
         return ResponseEntity.ok(updatedStudent);
     }
 
     @DeleteMapping("/{id}")
     @Operation(
-            summary = "Elimina un estudiante por su ID",
-            description = "Busca en el sistema el estudiante asociado al ID recibido, " +
-                    "para realizar su eliminación. " +
-                    "El ID será validado antes de envíar la petición."
+            summary = "Eliminar un estudiante",
+            description = "Elimina un estudiante del sistema mediante su ID único."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "204",
-                    description = "Estudiante eliminado correctamente.",
+                    description = "Estudiante eliminado exitosamente.",
                     content = @Content // @Content vacío porque no hay body (204)
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "El ID ingresado en la URL no es númerico de tipo (Long).",
+                    description = "Identificador del estudiante inválido.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -208,7 +200,7 @@ public class StudentController {
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "El ID ingresado no corresponde a ningún estudiante registrado.",
+                    description = "Estudiante no encontrado.",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDTO.class)
@@ -216,7 +208,7 @@ public class StudentController {
             )
     })
     public ResponseEntity<Void> delete(
-            @Parameter(description = "ID del estudiante.", example = "1")
+            @Parameter(description = "ID único del estudiante a eliminar.", example = "1")
             @PathVariable Long id
     ) {
         studentService.delete(id);

@@ -11,7 +11,5 @@ public interface EnrollmentMapper {
 
     EnrollmentDTO toDTO(Enrollment enrollment);
 
-    List<EnrollmentDTO> toDTOList(List<Enrollment> enrollments);
-
-    Enrollment toEntity(EnrollmentDTO enrollmentDTO);
+    Enrollment toEntity(EnrollmentDTO enrollment);
 }

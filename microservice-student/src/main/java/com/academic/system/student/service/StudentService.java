@@ -10,9 +10,9 @@ public interface StudentService {
 
     StudentDTO findById(Long id);
 
-    StudentDTO save(StudentDTO studentDTO);
+    StudentDTO save(StudentDTO student);
 
-    StudentDTO update(Long id, StudentDTO studentDTO);
+    StudentDTO update(Long id, StudentDTO student);
 
     void delete(Long id);
 }

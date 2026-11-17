@@ -10,9 +10,9 @@ public interface CourseService {
 
     CourseDTO findById(Long id);
 
-    CourseDTO save(CourseDTO courseDTO);
+    CourseDTO save(CourseDTO course);
 
-    CourseDTO update(Long id, CourseDTO courseDTO);
+    CourseDTO update(Long id, CourseDTO course);
 
     void delete(Long id);
 }

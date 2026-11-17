@@ -9,5 +9,4 @@ class MicroserviceEnrollmentApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-
 }

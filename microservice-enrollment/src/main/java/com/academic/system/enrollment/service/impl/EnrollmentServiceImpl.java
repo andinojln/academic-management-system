@@ -29,39 +29,30 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
     @Override
     @Transactional(readOnly = true)
+    public EnrollmentDTO findById(Long id) {
+
+        Enrollment enrollment = findEnrollmentOrThrow(id);
+        StudentDTO student = fetchStudentSafely(enrollment.getStudentId());
+        CourseDTO course = fetchCourseSafely(enrollment.getCourseId());
+
+        return buildEnrollmentDTO(
+                enrollment,
+                student,
+                course);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<EnrollmentDTO> findAllByStudentId(Long studentId) {
 
-        StudentDTO studentData;
-        try {
-            studentData = studentClient.findById(studentId);
-        } catch (FeignException.NotFound error) {
-            throw new ResourceNotFoundException("Estudiante no encontrado con el ID: " + studentId);
-        }
+        StudentDTO student = validateAndFetchStudent(studentId);
 
-        List<Enrollment> studentEnrollments = enrollmentRepository.findAllByStudentId(studentId);
-        List<EnrollmentDTO> studentEnrollmentsDTO = enrollmentMapper.toDTOList(studentEnrollments);
+        List<Enrollment> enrollments = enrollmentRepository.findAllByStudentId(studentId);
 
-        return studentEnrollmentsDTO.stream()
-                .map(enrollment -> {
-                    CourseDTO courseData;
-                    try {
-                        courseData = courseClient.findById(enrollment.courseId());
-                    } catch (FeignException.NotFound error) {
-                        courseData = new CourseDTO(
-                                enrollment.courseId(),
-                                "Curso no disponible",
-                                ""
-                        );
-                    }
-                    return new EnrollmentDTO(
-                            enrollment.id(),
-                            enrollment.enrollmentDate(),
-                            enrollment.studentId(),
-                            studentData,
-                            enrollment.courseId(),
-                            courseData
-                    );
-                })
+        return enrollments.stream()
+                .map(enrollment ->
+                        mapToEnrollmentDTOWithStudent(enrollment, student)
+                )
                 .toList();
     }
 
@@ -69,121 +60,172 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     @Transactional(readOnly = true)
     public List<EnrollmentDTO> findAllByCourseId(Long courseId) {
 
-        CourseDTO courseData;
-        try {
-            courseData = courseClient.findById(courseId);
-        } catch (FeignException.NotFound error) {
-            throw new ResourceNotFoundException("Curso no encontrado con el ID: " + courseId);
-        }
+        CourseDTO course = validateAndFetchCourse(courseId);
 
-        List<Enrollment> courseEnrollments = enrollmentRepository.findAllByCourseId(courseId);
-        List<EnrollmentDTO> courseEnrollmentsDTO = enrollmentMapper.toDTOList(courseEnrollments);
+        List<Enrollment> enrollments = enrollmentRepository.findAllByCourseId(courseId);
 
-        return courseEnrollmentsDTO.stream()
-                .map(enrollment -> {
-                    StudentDTO studentData;
-                    try {
-                        studentData = studentClient.findById(enrollment.studentId());
-                    } catch (FeignException.NotFound error) {
-                        studentData = new StudentDTO(
-                                enrollment.studentId(),
-                                "Estudiante no disponible",
-                                "",
-                                ""
-                        );
-                    }
-                    return new EnrollmentDTO(
-                            enrollment.id(),
-                            enrollment.enrollmentDate(),
-                            enrollment.studentId(),
-                            studentData,
-                            enrollment.courseId(),
-                            courseData
-                    );
-                })
+        return enrollments.stream()
+                .map(enrollment ->
+                        mapToEnrollmentDTOWithCourse(enrollment, course))
                 .toList();
     }
 
     @Override
     @Transactional
-    public EnrollmentDTO save(EnrollmentDTO enrollmentDTO) {
+    public EnrollmentDTO save(EnrollmentDTO enrollmentRequest) {
 
-        if (enrollmentRepository.existsByStudentIdAndCourseId(
-                enrollmentDTO.studentId(),
-                enrollmentDTO.courseId()
-        )) {
-            throw new ConflictException("El estudiante ya está inscrito en el curso");
-        }
+        validateEnrollment(enrollmentRequest.studentId(), enrollmentRequest.courseId());
 
-        try {
-            studentClient.findById(enrollmentDTO.studentId());
-        } catch (FeignException.NotFound error) {
-            throw new ResourceNotFoundException(
-                    "Estudiante no encontrado con el ID: " + enrollmentDTO.studentId()
-            );
-        }
-        try {
-            courseClient.findById(enrollmentDTO.courseId());
-        } catch (FeignException.NotFound error) {
-            throw new ResourceNotFoundException(
-                    "Curso no encontrado con el ID: " + enrollmentDTO.courseId()
-            );
-        }
+        StudentDTO student = validateAndFetchStudent(enrollmentRequest.studentId());
+        CourseDTO course = validateAndFetchCourse(enrollmentRequest.courseId());
 
-        Enrollment enrollment = enrollmentMapper.toEntity(enrollmentDTO);
+        Enrollment enrollment = enrollmentMapper.toEntity(enrollmentRequest);
         Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
-        return enrollmentMapper.toDTO(savedEnrollment);
+
+        return buildEnrollmentDTO(savedEnrollment, student, course);
     }
 
     @Override
     @Transactional
-    public EnrollmentDTO update(Long id, EnrollmentDTO enrollmentDTO) {
+    public EnrollmentDTO update(Long id, EnrollmentDTO enrollmentRequest) {
 
-        Enrollment enrollment = enrollmentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Inscripción no encontrada con el ID: " + id
-                ));
+        Enrollment enrollment = findEnrollmentOrThrow(id);
 
-        // Validación de duplicados
-        boolean studentChanged = !enrollment.getStudentId().equals(enrollmentDTO.studentId());
-        boolean courseChanged = !enrollment.getCourseId().equals(enrollmentDTO.courseId());
-        if ((studentChanged || courseChanged) &&
-                enrollmentRepository.existsByStudentIdAndCourseId(
-                        enrollmentDTO.studentId(),
-                        enrollmentDTO.courseId()
-        )) {
-            throw new ConflictException("El estudiante ya está inscrito en el curso");
-        }
+        validateDuplicateOnUpdate(enrollment, enrollmentRequest);
 
-        try {
-            studentClient.findById(enrollmentDTO.studentId());
-        } catch (FeignException.NotFound error) {
-            throw new ResourceNotFoundException(
-                    "Estudiante no encontrado con el ID: " + enrollmentDTO.studentId()
-            );
-        }
-        try {
-            courseClient.findById(enrollmentDTO.courseId());
-        } catch (FeignException.NotFound error) {
-            throw new ResourceNotFoundException(
-                    "Curso no encontrado con el ID: " + enrollmentDTO.courseId()
-            );
-        }
+        StudentDTO student = validateAndFetchStudent(enrollmentRequest.studentId());
+        CourseDTO course = validateAndFetchCourse(enrollmentRequest.courseId());
 
-        enrollment.setStudentId(enrollmentDTO.studentId());
-        enrollment.setCourseId(enrollmentDTO.courseId());
+        enrollment.setStudentId(enrollmentRequest.studentId());
+        enrollment.setCourseId(enrollmentRequest.courseId());
+
         Enrollment updatedEnrollment = enrollmentRepository.save(enrollment);
-        return enrollmentMapper.toDTO(updatedEnrollment);
+        return buildEnrollmentDTO(updatedEnrollment, student, course);
     }
 
     @Override
     @Transactional
     public void delete(Long id) {
 
-        if (!enrollmentRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Inscripción no encontrada con el ID: " + id);
-        }
-
+        findEnrollmentOrThrow(id);
         enrollmentRepository.deleteById(id);
+    }
+
+    // ===== MÉTODOS AUXILIARES PRIVADOS (CLEAN CODE & SRP) ===== //
+
+    private Enrollment findEnrollmentOrThrow(Long id) {
+
+        return enrollmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Inscripción no encontrada con el ID: " + id));
+    }
+
+    private StudentDTO fetchStudentSafely(Long studentId) {
+
+        try {
+            return studentClient.findById(studentId);
+        } catch (FeignException.NotFound e) {
+            return new StudentDTO(
+                    studentId,
+                    "Estudiante no disponible",
+                    "",
+                    ""
+            );
+        }
+    }
+
+    private CourseDTO fetchCourseSafely(Long courseId) {
+
+        try {
+            return courseClient.findById(courseId);
+        } catch (FeignException.NotFound e) {
+            return new CourseDTO(
+                    courseId,
+                    "Curso no disponible",
+                    ""
+            );
+        }
+    }
+
+    private EnrollmentDTO buildEnrollmentDTO(
+            Enrollment enrollment,
+            StudentDTO student,
+            CourseDTO course) {
+
+        return new EnrollmentDTO(
+                enrollment.getId(),
+                enrollment.getEnrollmentDate(),
+                enrollment.getStudentId(),
+                student,
+                enrollment.getCourseId(),
+                course
+        );
+    }
+
+    private StudentDTO validateAndFetchStudent(Long studentId) {
+
+        try {
+            return studentClient.findById(studentId);
+        } catch (FeignException.NotFound error) {
+            throw new ResourceNotFoundException("Estudiante no encontrado con el ID: " + studentId);
+        }
+    }
+
+    private CourseDTO validateAndFetchCourse(Long courseId) {
+
+        try {
+            return courseClient.findById(courseId);
+        } catch (FeignException.NotFound error) {
+            throw new ResourceNotFoundException("Curso no encontrado con el ID: " + courseId);
+        }
+    }
+
+    private void validateEnrollment(Long studentId, Long courseId) {
+
+        if (enrollmentRepository.existsByStudentIdAndCourseId(studentId, courseId)) {
+            throw new ConflictException("El estudiante ya está inscrito en el curso");
+        }
+    }
+
+    private void validateDuplicateOnUpdate(Enrollment enrollment, EnrollmentDTO enrollmentRequest) {
+
+        boolean studentChanged = !enrollment.getStudentId().equals(enrollmentRequest.studentId());
+        boolean courseChanged = !enrollment.getCourseId().equals(enrollmentRequest.courseId());
+
+        if ((studentChanged || courseChanged) &&
+                enrollmentRepository.existsByStudentIdAndCourseId(
+                        enrollmentRequest.studentId(),
+                        enrollmentRequest.courseId()
+                )) {
+            throw new ConflictException("Ya existe una inscripción para el estudiante en este curso");
+        }
+    }
+
+    private EnrollmentDTO mapToEnrollmentDTOWithStudent(Enrollment enrollment, StudentDTO student) {
+
+        CourseDTO course = fetchCourseSafely(enrollment.getCourseId());
+
+        return new EnrollmentDTO(
+                enrollment.getId(),
+                enrollment.getEnrollmentDate(),
+                enrollment.getStudentId(),
+                student,
+                enrollment.getCourseId(),
+                course
+        );
+    }
+
+    private EnrollmentDTO mapToEnrollmentDTOWithCourse(Enrollment enrollment, CourseDTO course) {
+
+        StudentDTO student = fetchStudentSafely(enrollment.getStudentId());
+
+        return new EnrollmentDTO(
+                enrollment.getId(),
+                enrollment.getEnrollmentDate(),
+                enrollment.getStudentId(),
+                student,
+                enrollment.getCourseId(),
+                course
+        );
     }
 }

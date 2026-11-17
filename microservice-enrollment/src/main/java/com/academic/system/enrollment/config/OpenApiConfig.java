@@ -22,10 +22,8 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("API del Microservicio de Inscripciones")
                         .version("1.0")
-                        .description(
-                                "Documentación de los endpoints para la gestión " +
-                                        "de inscripciones del Sistema Académico."
-                        )
+                        .description("Documentación de los endpoints para la gestión " +
+                                "de inscripciones del Sistema Académico.")
                 );
     }
 }
